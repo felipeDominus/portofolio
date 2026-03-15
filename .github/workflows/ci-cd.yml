@@ -30,6 +30,8 @@ jobs:
         run: npm run lint
 
       - name: Build
+        env:
+          NODE_ENV: production
         run: npm run build
 
   cd:
@@ -101,6 +103,7 @@ jobs:
 
       - name: Build
         env:
+          NODE_ENV: production
           GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
         run: npm run build
 
