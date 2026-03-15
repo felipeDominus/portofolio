@@ -1,5 +1,6 @@
 import {
   Hero,
+  Navbar,
   JobCard,
   ProjectCard,
   Contact,
@@ -21,8 +22,13 @@ import { LINKS } from '@/config/links'
 
 function App() {
   return (
-    <main className="portfolio">
-      <Hero />
+    <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <main id="main-content" className="portfolio">
+        <Navbar />
+        <Hero />
 
       <Section id="summary" title="Professional Summary">
         <p>{SUMMARY_TEXT}</p>
@@ -103,7 +109,7 @@ function App() {
             tech={p.tech}
           />
         ))}
-        <a href={LINKS.githubRepos} target="_blank" rel="noopener noreferrer" className="more-link">
+        <a href={LINKS.githubRepos} target="_blank" rel="noopener noreferrer" className="more-link" aria-label="View all repositories (opens in new tab)">
           View all repositories →
         </a>
       </Section>
@@ -119,7 +125,8 @@ function App() {
       </Section>
 
       <Contact />
-    </main>
+      </main>
+    </>
   )
 }
 
