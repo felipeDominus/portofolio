@@ -13,8 +13,8 @@ function Hero() {
           src={`${base}profile.png`}
           alt="Felipe Silva de Mello"
           className="hero-avatar"
-          width={160}
-          height={160}
+          width={120}
+          height={120}
         />
         <p className="hero-badge">Senior Software Engineer</p>
         <h1>Felipe Silva de Mello</h1>
