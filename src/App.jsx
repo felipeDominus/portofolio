@@ -13,7 +13,7 @@ import {
   SKILL_GROUPS,
   PROJECTS,
   EDUCATION,
-  COURSES,
+  CERTIFICATIONS,
   LANGUAGES,
   ADDITIONAL_INFO,
   SUMMARY_TEXT,
@@ -31,7 +31,9 @@ function App() {
         <Hero />
 
       <Section id="summary" title="Professional Summary">
-        <p>{SUMMARY_TEXT}</p>
+        <div className="summary-block">
+          <p>{SUMMARY_TEXT}</p>
+        </div>
       </Section>
 
       <Section id="contributions" title="Key Contributions">
@@ -83,8 +85,21 @@ function App() {
 
       <Section id="development" title="Professional Development">
         <ul className="courses-list">
-          {COURSES.map((course, i) => (
-            <li key={i}>{course}</li>
+          {CERTIFICATIONS.map((cert, i) => (
+            <li key={i}>
+              {cert.url ? (
+                <a
+                  href={cert.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`View certificate: ${cert.title} (opens in new tab)`}
+                >
+                  {cert.title}, {cert.issuer}{cert.date ? `, ${cert.date}` : ''}
+                </a>
+              ) : (
+                <span>{cert.title}, {cert.issuer}{cert.date ? `, ${cert.date}` : ''}</span>
+              )}
+            </li>
           ))}
         </ul>
       </Section>

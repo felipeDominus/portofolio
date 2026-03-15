@@ -184,11 +184,60 @@ body {
   text-align: center;
 }
 
+/* Skill logos background (SVG grid) */
+.hero-skill-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hero-skill-bg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 1.25rem;
+  padding: 2rem;
+  width: 100%;
+  height: 100%;
+  align-content: start;
+  justify-items: center;
+}
+
+.hero-skill-bg-item {
+  width: 56px;
+  height: 56px;
+  opacity: 0.2;
+  color: var(--skill-color, var(--text));
+  transition: opacity 0.2s ease;
+}
+
+.hero-skill-bg-item svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .hero-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, transparent 60%);
+  /* Radial overlay: darker center for text contrast (WCAG), lighter edges so skill logos read better */
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 45%, rgba(10, 15, 26, 0.88) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(10, 15, 26, 0.9) 0%, rgba(10, 15, 26, 0.72) 40%, rgba(10, 15, 26, 0.88) 100%);
   pointer-events: none;
+}
+
+.hero-avatar {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border);
+  box-shadow: var(--shadow);
+  margin-bottom: 1.25rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .hero-content {
@@ -283,7 +332,7 @@ body {
 }
 
 .section {
-  padding: 2.5rem 0;
+  padding: 2.75rem 0;
   border-bottom: 1px solid var(--border);
 }
 
@@ -291,11 +340,33 @@ body {
   border-bottom: none;
 }
 
+/* Section titles: clear hierarchy and scanability for recruiters */
 .section-title {
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   font-weight: 600;
+  letter-spacing: -0.02em;
   color: var(--text-heading);
-  margin: 0 0 1.25rem;
+  margin: 0 0 1.5rem;
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent);
+  line-height: 1.3;
+}
+
+/* Summary: “value prop” block with readable line length (45–75 chars) */
+.summary-block {
+  max-width: 65ch;
+  margin: 0;
+  padding: 1.5rem 1.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+.summary-block p {
+  margin: 0;
 }
 
 .job-card {
@@ -304,7 +375,7 @@ body {
   border-radius: var(--radius-lg);
   padding: 1.5rem;
   margin-bottom: 1rem;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -315,6 +386,7 @@ body {
 
 .job-card:hover {
   border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .job-header {
@@ -355,14 +427,20 @@ body {
   border: 1px solid var(--border);
   border-left: 3px solid var(--accent);
   border-radius: var(--radius);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 0.75rem;
+  padding: 1.35rem 1.5rem;
+  margin-bottom: 0.85rem;
+  transition: border-color var(--transition);
+}
+
+.contrib-card:hover {
+  border-left-color: var(--accent-hover);
 }
 
 .contrib-card strong {
   color: var(--text-heading);
   display: block;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
+  font-size: 1rem;
 }
 
 .skills-grid {
@@ -373,18 +451,23 @@ body {
 }
 
 .skill-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .skill-group:last-child {
   margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
 }
 
 .skill-group-label {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: var(--text-bright);
-  margin-bottom: 0.5rem;
+  color: var(--text-heading);
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.01em;
 }
 
 .skill-badge {
@@ -402,9 +485,9 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  padding: 1.35rem;
   margin-bottom: 1rem;
-  transition: border-color var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -415,6 +498,7 @@ body {
 
 .project-card:hover {
   border-color: rgba(37, 99, 235, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
 }
 
 .project-title a {
@@ -483,6 +567,11 @@ body {
   border-radius: var(--radius);
   padding: 1.25rem;
   margin-bottom: 1rem;
+  transition: border-color var(--transition);
+}
+
+.edu-card:hover {
+  border-color: rgba(37, 99, 235, 0.35);
 }
 
 .edu-card h3 {
@@ -505,13 +594,29 @@ body {
 }
 
 .courses-list li {
-  padding: 0.5rem 0;
+  padding: 0.65rem 0;
   border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
 }
 
 .courses-list li:last-child {
   border-bottom: none;
+}
+
+.courses-list a {
+  color: var(--secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.courses-list a:hover {
+  color: var(--accent);
+}
+
+.courses-list a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .lang-grid {
@@ -552,9 +657,14 @@ body {
   color: var(--text-bright);
 }
 
+/* Contact: clear CTA block so recruiters see the next step */
 .contact {
-  padding: 3rem 0;
+  padding: 3.5rem 2rem;
   text-align: center;
+  background: linear-gradient(180deg, transparent 0%, rgba(29, 78, 216, 0.06) 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  margin-top: 0.5rem;
 }
 
 .contact-title {
@@ -568,6 +678,9 @@ body {
   font-size: 0.95rem;
   color: var(--text);
   margin-bottom: 1.5rem;
+  max-width: 36ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .contact-nav {

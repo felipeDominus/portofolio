@@ -57,6 +57,7 @@ export const SKILL_GROUPS = [
   { label: 'Architecture', skills: ['Microservices', 'Kafka', 'RabbitMQ', 'IBM MQ', 'REST APIs', 'Oracle', 'IBM Db2', 'MongoDB'] },
   { label: 'DevOps & Cloud', skills: ['Kubernetes', 'Docker', 'OpenShift', 'Ansible', 'Jenkins', 'CI/CD', 'Linux RHEL 9'] },
   { label: 'Observability & Security', skills: ['Splunk', 'CVE Scanning', 'OpenTelemetry', 'Grafana', 'GitHub Copilot'] },
+  { label: 'Data & AI', skills: ['AI Fundamentals', 'Data Literacy'] },
   { label: 'Tools', skills: ['Git', 'Jira', 'Agile/Scrum', 'OpenAPI', 'Postman', 'JMeter'] },
 ]
 
@@ -96,12 +97,19 @@ export const EDUCATION = [
   },
 ]
 
-export const COURSES = [
-  'Introduction to Containers w/ Docker, Kubernetes & OpenShift, IBM | Coursera, July 2025',
-  'Introduction to DevOps, IBM | Coursera, February 2024',
-  'Java Programming and Software Engineering Fundamentals, Duke University | Coursera, 2022',
-  'Web Development with Java Spring Framework, St. Petersburg State Polytechnical University | Coursera, 2022',
-  'Java Programming: Solving Problems with Software, Duke University | Coursera, 2017',
+/** Certifications with verification URLs (opens in new tab). */
+export const CERTIFICATIONS = [
+  { title: 'AI Fundamentals', issuer: 'DataCamp', date: null, url: 'https://www.datacamp.com/skill-verification/AIF0020684163736' },
+  { title: 'Data Literacy', issuer: 'DataCamp', date: null, url: 'https://www.datacamp.com/skill-verification/DL0037750883045' },
+  { title: 'Introduction to Containers w/ Docker, Kubernetes & OpenShift', issuer: 'IBM | Coursera', date: 'July 2025', url: 'https://www.coursera.org/account/accomplishments/records/OGV3BDCZTDAJ' },
+  { title: 'Introduction to DevOps', issuer: 'IBM | Coursera', date: 'February 2024', url: 'https://coursera.org/verify/8EKYC2AA4L7A' },
+  { title: 'Object Oriented Programming in Java Specialization', issuer: 'Duke University | Coursera', date: null, url: 'https://www.coursera.org/account/accomplishments/specialization/USHT8ZNMAMBK' },
+  { title: 'Web Development with Java Spring Framework', issuer: 'Peter the Great St. Petersburg Polytechnic University | Coursera', date: null, url: 'https://coursera.org/verify/AUV7T5CTG23N' },
+  { title: 'Java Programming and Software Engineering Fundamentals Specialization', issuer: 'Duke University | Coursera', date: null, url: 'https://www.coursera.org/account/accomplishments/specialization/HBBTE37DY8P9' },
+  { title: 'Learning Spring with Spring Boot', issuer: 'LinkedIn Learning', date: null, url: 'https://www.linkedin.com/learning/certificates/b53d39673dbff8b5f92fa93c7f52ab5731e3df2e320ab902a16fd1a6f32f164a?trk=backfilled_certificate' },
+  { title: 'The Bits and Bytes of Computer Networking', issuer: 'Google | Coursera', date: 'September 2018', url: 'https://www.coursera.org/account/accomplishments/verify/7PLP3VS5Z6WK' },
+  { title: 'Technical Support Fundamentals', issuer: 'Google | Coursera', date: 'June 2018', url: 'https://www.coursera.org/account/accomplishments/verify/GSAGNUTAWGTU' },
+  { title: 'Meet Your Brain: A Short Introduction to Neuroscience', issuer: 'Udemy', date: null, url: 'http://ude.my/UC-4Q9PIBF5' },
 ]
 
 export const LANGUAGES = [
