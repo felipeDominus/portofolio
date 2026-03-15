@@ -7,10 +7,10 @@ function ProjectCard({ title, href, description, tech }) {
         </a>
       </h3>
       <p className="project-desc">{description}</p>
-      {tech && (
+      {tech?.length > 0 && (
         <div className="project-tech">
-          {tech.map((t, i) => (
-            <span key={i} className="project-tag">{t}</span>
+          {tech.map((t) => (
+            <span key={t} className="project-tag">{t}</span>
           ))}
         </div>
       )}
