@@ -1,0 +1,25 @@
+.portfolio {
+  min-height: 100vh;
+  padding: 2rem;
+  text-align: center;
+}
+
+.portfolio header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.portfolio .stack {
+  margin-top: 3rem;
+}
+
+.portfolio .logos {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.portfolio .logos .logo {
+  height: 48px;
+  width: auto;
+}
