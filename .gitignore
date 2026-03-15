@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Cursor skills (project-specific AI guidance)
+.cursor/skills/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
