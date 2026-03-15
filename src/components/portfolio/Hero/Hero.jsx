@@ -1,10 +1,21 @@
 import { LINKS } from '@/config/links'
+import { HeroSkillBackground } from './HeroSkillBackground'
+
+const base = import.meta.env.BASE_URL
 
 function Hero() {
   return (
     <header className="hero" id="hero">
+      <HeroSkillBackground />
       <div className="hero-bg" aria-hidden="true" />
       <div className="hero-content">
+        <img
+          src={`${base}profile.png`}
+          alt="Felipe Silva de Mello"
+          className="hero-avatar"
+          width={120}
+          height={120}
+        />
         <p className="hero-badge">Senior Software Engineer</p>
         <h1>Felipe Silva de Mello</h1>
         <p className="hero-location">
