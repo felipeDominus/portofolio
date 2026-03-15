@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main, master]
 
+# Only one Pages deployment per branch at a time; avoids "Multiple artifacts named github-pages"
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
 
@@ -111,12 +116,12 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        with:
-          enablement: true
 
+      # Must upload exactly one artifact named "github-pages" per run (no matrix on this job).
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages
           path: dist
 
       - name: Deploy to GitHub Pages
