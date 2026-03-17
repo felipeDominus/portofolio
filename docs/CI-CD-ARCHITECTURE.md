@@ -258,12 +258,13 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 ## End-to-End Flow
 
 1. **Developer pushes or opens a PR** to `main`/`master`.
-2. **CI job** runs: checkout → setup Node → `npm ci` → lint → build.  
+2. **Local pre-commit hook (Husky)** runs on every `git commit`: `npm run lint`. This prevents committing code that fails ESLint before it even reaches CI.  
+3. **CI job** runs: checkout → setup Node → `npm ci` → lint → build.  
    **CodeQL** runs in parallel: checkout → init CodeQL → analyze.
-3. On **push to main/master** only:
+4. On **push to main/master** only:
    - **CD job** builds the Docker image from the Dockerfile (builder → runner with Nginx) and pushes it to `ghcr.io/<owner>/<repo>`.
    - **Pages job** builds the app with the correct `base`, uploads `dist/` as the Pages artifact, and deploys to GitHub Pages.
-4. **Results:**
+5. **Results:**
    - **GitHub Pages:** Static site at `https://<owner>.github.io/<repo>/`.
    - **Container:** Image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags) for use in Cloud Run, Kubernetes, or `docker run`.
 
@@ -275,7 +276,7 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 |-----------|------|
 | **Checkout** | Provides the repository source for every job. |
 | **Setup Node.js** | Ensures Node 22 and npm cache for install/build. |
-| **npm ci / lint / build** | Reproducible install, quality check, and production bundle. |
+| **npm ci / lint / build** | Reproducible install, quality check, and production bundle. Locally, Husky runs `npm run lint` on every commit via the `pre-commit` hook. |
 | **Docker Buildx** | Builds the multi-stage image with caching. |
 | **GHCR login + metadata** | Authenticates and defines image tags/labels. |
 | **Build and push** | Produces and publishes the container image. |

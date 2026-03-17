@@ -24,6 +24,15 @@ npm run dev
 | `npm run build`  | Production build              |
 | `npm run lint`   | Run ESLint                    |
 | `npm run preview`| Preview production build      |
+| `npm test`       | Placeholder test command (always exits 0) |
+
+On `npm install`, the `prepare` script runs **Husky**, which installs Git hooks from the `.husky/` directory. The `pre-commit` hook is configured to run:
+
+```bash
+npm run lint
+```
+
+This means every `git commit` will first run ESLint and abort if there are any lint errors.
 
 ## Docker
 
