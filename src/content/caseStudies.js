@@ -25,7 +25,7 @@ export const CASE_STUDIES = [
     problem:
       'Payment APIs were slowed down by multiple synchronous calls to legacy systems. Customers and internal teams experienced delays, and incident response was difficult due to poor observability.',
     approach: [
-      'Designed and implemented a \"Single Customer View\" microservice that aggregates data from multiple systems into a single optimised response.',
+      'Designed and implemented a Single Customer View microservice that aggregates data from multiple systems into a single optimised response.',
       'Introduced caching, parallel calls, and circuit breakers, while keeping strict controls around data access and audit logging.',
       'Improved metrics and dashboards so engineering and support teams could see the impact of changes in real time.',
     ],
