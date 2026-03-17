@@ -1,9 +1,26 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { BLOG_POSTS } from '@/content/blogData'
 import { Section } from '@/components'
 
+const CATEGORY_ALL = 'All'
+
 function BlogIndex() {
   const [activeSlug, setActiveSlug] = useState(BLOG_POSTS[0]?.slug ?? null)
+  const [selectedCategory, setSelectedCategory] = useState(CATEGORY_ALL)
+
+  const categories = useMemo(
+    () =>
+      [CATEGORY_ALL, ...Array.from(new Set(BLOG_POSTS.map((p) => p.category).filter(Boolean))).sort()],
+    [],
+  )
+
+  const filteredPosts = useMemo(
+    () =>
+      selectedCategory === CATEGORY_ALL
+        ? BLOG_POSTS
+        : BLOG_POSTS.filter((p) => p.category === selectedCategory),
+    [selectedCategory],
+  )
 
   if (!BLOG_POSTS.length) {
     return null
@@ -11,10 +28,40 @@ function BlogIndex() {
 
   return (
     <Section id="blog" title="Blog: Security, Cloud & AI">
+      <p className="blog-topic-summary">
+        AI security, cloud & microservices, secure dev tooling, Kubernetes/DevOps
+      </p>
+      <p className="blog-disclaimer" role="note">
+        Everything on this blog is my personal opinion only. It is not affiliated
+        with, endorsed by, or reflective of my employer or any client. Nothing
+        here is intended to criticise or imply wrongdoing by any organisation I
+        work with or have worked with.
+      </p>
+      <nav className="blog-categories" aria-label="Blog categories">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            className={`blog-category-btn ${selectedCategory === cat ? 'blog-category-btn-active' : ''}`}
+            onClick={() => {
+              setSelectedCategory(cat)
+              setActiveSlug(null)
+            }}
+            aria-pressed={selectedCategory === cat}
+          >
+            {cat}
+          </button>
+        ))}
+      </nav>
       <div className="blog-list">
-        {BLOG_POSTS.map((post) => (
+        {filteredPosts.map((post) => (
           <article key={post.slug} className="blog-card">
             <header className="blog-card-header">
+              {post.category ? (
+                <span className="blog-card-category" aria-label="Category">
+                  {post.category}
+                </span>
+              ) : null}
               <p className="blog-card-meta">
                 <span>{new Date(post.date).toLocaleDateString('en-IE')}</span>
                 <span aria-hidden="true">·</span>
@@ -55,9 +102,26 @@ function BlogIndex() {
                   {post.sections?.map((section) => (
                     <section key={section.heading} className="blog-article-section">
                       <h4 className="blog-article-heading">{section.heading}</h4>
-                      {section.body?.map((paragraph) => (
-                        <p key={paragraph}>{paragraph}</p>
-                      ))}
+                      {section.body?.map((entry) =>
+                        typeof entry === 'string' ? (
+                          <p key={entry}>{entry}</p>
+                        ) : (
+                          <p key={entry.label}>
+                            {entry.href ? (
+                              <a
+                                href={entry.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                aria-label={`${entry.label} (opens in new tab)`}
+                              >
+                                {entry.label}
+                              </a>
+                            ) : (
+                              entry.label
+                            )}
+                          </p>
+                        ),
+                      )}
                     </section>
                   ))}
                 </div>
