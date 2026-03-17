@@ -16,14 +16,15 @@ function Hero() {
           width={120}
           height={120}
         />
-        <p className="hero-badge">Senior Software Engineer</p>
+        <p className="hero-badge">Fintech · Secure Systems · AI Automation</p>
         <h1>Felipe Silva de Mello</h1>
         <p className="hero-location">
           Swords, Dublin, Ireland · Brazilian · Irish
         </p>
         <p className="hero-summary">
-          7+ years building scalable backend architectures for financial institutions.
-          Java microservices · Kubernetes · DevOps automation.
+          Senior software engineer in European banking, helping regulated
+          organisations ship secure, scalable microservices and AI-powered
+          automations that reduce risk and unlock new revenue.
         </p>
         <nav className="hero-nav" aria-label="Contact links">
           <a

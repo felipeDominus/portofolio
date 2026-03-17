@@ -57,7 +57,17 @@ export const SKILL_GROUPS = [
   { label: 'Architecture', skills: ['Microservices', 'Kafka', 'RabbitMQ', 'IBM MQ', 'REST APIs', 'Oracle', 'IBM Db2', 'MongoDB'] },
   { label: 'DevOps & Cloud', skills: ['Kubernetes', 'Docker', 'OpenShift', 'Ansible', 'Jenkins', 'CI/CD', 'Linux RHEL 9'] },
   { label: 'Observability & Security', skills: ['Splunk', 'CVE Scanning', 'OpenTelemetry', 'Grafana', 'GitHub Copilot'] },
-  { label: 'Data & AI', skills: ['AI Fundamentals', 'Data Literacy'] },
+  {
+    label: 'Data & AI',
+    skills: [
+      'AI Fundamentals',
+      'Data Literacy',
+      'AI solutions for business',
+      'AI tooling & enablement',
+      'AI agents & workflow design',
+      'AI fit assessments (when not to use AI)',
+    ],
+  },
   { label: 'Tools', skills: ['Git', 'Jira', 'Agile/Scrum', 'OpenAPI', 'Postman', 'JMeter'] },
 ]
 
