@@ -1,5 +1,4 @@
 import { Hero, Navbar, JobCard, ProjectCard, Contact, Section, SkillBadge, BlogIndex, CaseStudiesSection } from '@/components'
-import { usePageMetrics } from '@/hooks'
 import {
   JOBS,
   CONTRIBUTIONS,
@@ -14,8 +13,6 @@ import {
 import { LINKS } from '@/config/links'
 
 function App() {
-  usePageMetrics()
-
   return (
     <>
       <a href="#main-content" className="skip-link">
