@@ -11,9 +11,8 @@ export function usePageMetrics() {
     const start = performance.now()
 
     function handleBeforeUnload() {
-      const durationMs = Math.round(performance.now() - start)
       // In a real deployment this is where we would send
-      // durationMs, location.pathname, and simple events to
+      // Math.round(performance.now() - start), location.pathname, and simple events to
       // a privacy-friendly analytics backend.
       // Intentionally no console.log to keep the UI clean.
     }

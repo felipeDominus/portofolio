@@ -3,11 +3,11 @@ import { BLOG_POSTS } from '@/content/blogData'
 import { Section } from '@/components'
 
 function BlogIndex() {
+  const [activeSlug, setActiveSlug] = useState(BLOG_POSTS[0]?.slug ?? null)
+
   if (!BLOG_POSTS.length) {
     return null
   }
-
-  const [activeSlug, setActiveSlug] = useState(BLOG_POSTS[0]?.slug ?? null)
 
   return (
     <Section id="blog" title="Blog: Security, Cloud & AI">
