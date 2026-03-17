@@ -5,7 +5,10 @@ function Contact() {
     <footer className="contact" id="contact">
       <h2 className="contact-title">Get in Touch</h2>
       <p className="contact-text">
-        Open to opportunities in Fintech and enterprise software.
+        I partner with banks, fintechs, and regulated businesses to design secure
+        architectures and AI-powered automations that reduce risk and unlock new
+        revenue. The best way to reach me is via LinkedIn—send a short message
+        about your context and what you&apos;d like to explore.
       </p>
       <nav className="contact-nav" aria-label="Contact options">
         <a
@@ -27,6 +30,11 @@ function Contact() {
           GitHub
         </a>
       </nav>
+      <p className="contact-disclaimer">
+        All content and examples on this site and blog reflect my personal views
+        and experience only. They do not represent, describe, or disclose any
+        confidential information about my current or past employers or clients.
+      </p>
     </footer>
   )
 }

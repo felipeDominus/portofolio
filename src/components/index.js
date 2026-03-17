@@ -1,2 +1,2 @@
 export { Section, SkillBadge } from './common'
-export { Hero, Navbar, JobCard, ProjectCard, Contact } from './portfolio'
+export { Hero, Navbar, JobCard, ProjectCard, Contact, BlogIndex, CaseStudiesSection } from './portfolio'
