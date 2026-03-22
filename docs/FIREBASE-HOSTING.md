@@ -1,5 +1,7 @@
 # Firebase Hosting (SPA)
 
+**CI/CD:** The workflow includes **Firebase Hosting** jobs (`firebase_preview`, `firebase_hosting` in `.github/workflows/ci-cd.yml`). They are **disabled** with `if: false && …` until you add secrets and flip the condition—then they deploy like any other Firebase + Actions setup. Until then, only lint/build and Docker → GHCR run.
+
 This project ships with Firebase Hosting configuration in `firebase.json`:
 
 - Serves the Vite build output from `dist/`

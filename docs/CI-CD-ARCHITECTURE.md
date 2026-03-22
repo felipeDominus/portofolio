@@ -8,10 +8,10 @@ This document describes the end-to-end CI/CD setup: workflows, jobs, Docker, and
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, Docker image push to GHCR, **Firebase Hosting** (preview on PRs, **live** on main/master) |
+| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, Docker image push to GHCR on push to `main`/`master`; **Firebase Hosting** jobs are defined but **disabled** (`if: false && …`) until you enable them |
 | **CodeQL** | `.github/workflows/codeql.yml` | `push` / `pull_request` to `main` or `master` | Security and code quality analysis |
 
-Static hosting is **Firebase Hosting** (see [`firebase.json`](../firebase.json) and [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)). There is **no** GitHub Pages deploy job in this repo.
+**Static hosting:** Firebase deploy steps exist in the workflow file but are **off** until you flip the `if:` conditions and add secrets (see [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)). [`firebase.json`](../firebase.json) matches that setup. There is **no** GitHub Pages deploy job unless you add one.
 
 ### Architecture diagram (Mermaid)
 
@@ -56,7 +56,7 @@ flowchart TB
     B5 --> GHCR[ghcr.io/owner/repo]
   end
 
-  subgraph firebase_preview["Firebase Hosting — Preview"]
+  subgraph firebase_preview["Firebase Hosting — Preview disabled until if updated"]
     F1[Checkout]
     F2[Setup Node]
     F3[npm ci]
@@ -66,7 +66,7 @@ flowchart TB
     F5 --> PreviewURL[PR preview URL]
   end
 
-  subgraph firebase_hosting["Firebase Hosting — Production"]
+  subgraph firebase_hosting["Firebase Hosting — Production disabled until if updated"]
     H1[Checkout]
     H2[Setup Node]
     H3[npm ci]
@@ -129,8 +129,8 @@ flowchart LR
          │ pull_request       │ push main/master   │
          ▼                    ▼                    ▼
 ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────────┐
-│ Firebase Preview │  │ Docker push GHCR │  │ Firebase Hosting (live)      │
-│ PR channel       │  │ multi-stage img  │  │ live channel                 │
+│ Firebase preview │  │ Docker push GHCR │  │ Firebase Hosting (live)      │
+│ job if: disabled │  │ multi-stage img  │  │ job if: disabled             │
 └──────────────────┘  └──────────────────┘  └──────────────────────────────┘
 ```
 
@@ -160,7 +160,7 @@ push or pull_request
 
 ### Job 1: `ci` — Lint & Build
 
-Runs on every push and every PR. Must pass before CD or Firebase deploy jobs run.
+Runs on every push and every PR. Must pass before the **cd** job on pushes to `main`/`master`, and before Firebase jobs when those are enabled (`needs: ci`).
 
 | Step | Action | Purpose |
 |------|--------|---------|
@@ -186,7 +186,7 @@ Runs only on **push** to `main` or `master` (not on PRs). Depends on `ci` passin
 
 ### Job 3: `firebase_preview` — Firebase Hosting (preview)
 
-Runs only on **pull requests**. Depends on `ci` passing. Uses `FirebaseExtended/action-hosting-deploy@v0`.
+Defined in the workflow; **skipped** until you change `if:` from `false && github.event_name == 'pull_request'` to `github.event_name == 'pull_request'` and configure secrets. Uses `FirebaseExtended/action-hosting-deploy@v0`.
 
 | Step | Action | Purpose |
 |------|--------|---------|
@@ -200,7 +200,7 @@ Runs only on **pull requests**. Depends on `ci` passing. Uses `FirebaseExtended/
 
 ### Job 4: `firebase_hosting` — Firebase Hosting (production)
 
-Runs only on **push** to `main` or `master`. Depends on `ci` passing.
+Defined in the workflow; **skipped** until you change `if:` from `false && github.event_name == 'push' && …` to the push/main condition without `false &&`. Depends on `ci` passing.
 
 | Step | Action | Purpose |
 |------|--------|---------|
@@ -210,7 +210,7 @@ Runs only on **push** to `main` or `master`. Depends on `ci` passing.
 | **Build** | `npm run build` with `NODE_ENV=production` and **`VITE_BASE=/`** | Production bundle for Firebase. |
 | **Deploy** | Firebase Hosting deploy action | Deploy to **`live`** channel. |
 
-**Output:** Site served on your Firebase Hosting domain (e.g. `*.web.app` or custom domain).
+**Output (when enabled):** Site served on your Firebase Hosting domain (e.g. `*.web.app` or custom domain).
 
 ---
 
@@ -278,13 +278,9 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 2. **Local pre-commit hook (Husky)** runs on every `git commit`: `npm run lint`. This prevents committing code that fails ESLint before it even reaches CI.  
 3. **CI job** runs: checkout → setup Node 22 → `npm ci` → lint → build.  
    **CodeQL** runs in parallel: checkout → init CodeQL → analyze.
-4. On **pull request:** **Firebase preview** job runs after CI: build with `VITE_BASE=/` → deploy to a **preview channel** and post the URL on the PR.
-5. On **push to main/master:**  
-   - **CD job** builds the Docker image and pushes to `ghcr.io/<owner>/<repo>`.  
-   - **Firebase production** job deploys the **live** channel.
-6. **Results:**  
-   - **Firebase Hosting:** Preview URLs on PRs; production site on push.  
-   - **Container:** Image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags) for `docker pull` / Kubernetes / Cloud Run.
+4. On **pull request:** **CI** (and CodeQL) run. **Firebase preview** is defined but skipped while `if: false && …` is in place.
+5. On **push to main/master:** the **CD job** builds the Docker image and pushes to `ghcr.io/<owner>/<repo>`. **Firebase production** is defined but skipped until you enable its `if:`.
+6. **Results:** Container image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags). After you enable Firebase jobs and secrets, preview URLs on PRs and the live Firebase site behave as in [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md).
 
 ---
 
@@ -298,7 +294,7 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 | **Docker Buildx** | Builds the multi-stage image with caching. |
 | **GHCR login + metadata** | Authenticates and defines image tags/labels. |
 | **Build and push** | Produces and publishes the container image. |
-| **Firebase Hosting deploy** | Publishes `dist/` to preview (PR) or **live** (main/master) channels. |
+| **Firebase Hosting deploy** | Publishes `dist/` to preview (PR) or **live** (main/master) when those jobs are enabled. |
 | **Initialize CodeQL** | Prepares the CodeQL database for the chosen language. |
 | **Perform CodeQL Analysis** | Runs security/quality queries and reports results. |
 | **Nginx** | Serves the static `dist/` in the Docker image and handles SPA routing and caching. |
