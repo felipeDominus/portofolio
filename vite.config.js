@@ -6,11 +6,16 @@ import react from '@vitejs/plugin-react'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // https://vite.dev/config/
-// Base path for GitHub Pages project site (e.g. owner.github.io/portofolio)
-// Set GITHUB_REPOSITORY_NAME in CI to match repo; fallback for local dev
-const base = process.env.GITHUB_REPOSITORY_NAME
-  ? `/${process.env.GITHUB_REPOSITORY_NAME}/`
-  : '/portofolio/'
+// Base path differs by hosting target:
+// - Firebase Hosting / custom domain: '/'
+// - GitHub Pages project site: '/<repo>/'
+//
+// Prefer explicit override for predictable builds.
+const base =
+  process.env.VITE_BASE ??
+  (process.env.GITHUB_REPOSITORY_NAME
+    ? `/${process.env.GITHUB_REPOSITORY_NAME}/`
+    : '/')
 
 export default defineConfig({
   base,

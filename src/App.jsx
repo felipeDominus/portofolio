@@ -28,7 +28,7 @@ function App() {
           </div>
         </Section>
 
-        <Section id="expertise" title="What I Help With">
+        <Section id="expertise" title="Areas of Expertise">
           <div className="contrib-list">
             <div className="contrib-card">
               <strong>Secure development & SDLC</strong>

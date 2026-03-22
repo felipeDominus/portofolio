@@ -27,7 +27,7 @@ export const JOBS = [
     items: [
       'Led Java Microservices for SEPA Instant Payments, ensuring high availability and compliance in Agile environment.',
       'Reduced API latency by 87.5% with "Single Customer View" and parallel processing.',
-      'Improved nCino credit decision speed by over 96% (2-day manual process → 30-minute automated approval).',
+      'Improved nCino credit decision speed by over 98% (7-day manual process → under 2-hour automated approval).',
       'Designed IBM Db2 solutions, stored procedures, and database normalisation for high-volume banking data.',
       'Migrated legacy unit tests to JUnit 5 and resolved Sonar quality gate issues.',
     ],
@@ -46,7 +46,7 @@ export const JOBS = [
 ]
 
 export const CONTRIBUTIONS = [
-  { label: 'Digital Transformation', text: 'Led the migration of monolithic banking systems to microservices and Kubernetes, resulting in a 96% improvement in credit decision speeds.' },
+  { label: 'Digital Transformation', text: 'Led the migration of monolithic banking systems to microservices and Kubernetes, resulting in over 98% improvement in credit decision speeds.' },
   { label: 'Performance Engineering', text: 'Architected "Single Customer View" solutions that reduced API transaction latency by 87.5% (2.8s per transaction).' },
   { label: 'DevSecOps & Automation', text: 'Automated CVE vulnerability scanning and post-deployment smoke testing, reducing deployment failures by 80% and ensuring proactive security compliance.' },
   { label: 'Observability & DevEx', text: 'Engineered Kubernetes-based API solutions and Splunk comparative analytics that eliminated local environment overhead and accelerated production issue resolution (MTTR).' },

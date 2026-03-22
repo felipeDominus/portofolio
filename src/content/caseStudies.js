@@ -1,20 +1,19 @@
 export const CASE_STUDIES = [
   {
-    id: 'secure-ai-credit-decisions',
-    title: 'Secure AI-assisted credit decisions in a Tier-1 bank',
+    id: 'automated-credit-decisioning-tier1',
+    title: 'Automated Credit Decisioning Systems (Tier-1 Banking)',
     role: 'Senior Software Engineer',
-    domain: 'Credit decisioning · Retail banking',
+    domain: 'Credit Decisioning · Retail Banking',
     problem:
-      'Manual credit review was slow, inconsistent, and difficult to audit. Leadership wanted to use automation and AI to accelerate decisions without creating new model risk or compliance issues.',
+      'Manual credit reviews were a major bottleneck, taking up to 7 days to process small loan applications. The process was slow, prone to human error, and difficult to audit at scale. Leadership required a high-integrity automation solution that could accelerate decisions while strictly adhering to complex regulatory and risk frameworks.',
     approach: [
-      'Partnered with product, risk, and architecture to map the existing decision workflow and identify low-risk candidates for automation.',
-      'Introduced a service layer that combines deterministic rules with AI-assisted summarisation of supporting documents, keeping final decisions fully auditable.',
-      'Implemented feature flags, regression tests, and detailed logging so every automated decision can be explained and rolled back if needed.',
+      'Systems Architecture: Partnered with Risk and Architecture to decompose manual workflows into a high-performance, rules-based engine, defining strict boundaries for automated approvals.',
+      'Deterministic Logic: Engineered a robust service layer to execute complex credit-scoring models. By moving from manual review to programmatic, logic-driven processing.',
+      'Operational Safety: Implemented advanced feature flagging, comprehensive regression testing suites, and structured telemetry. This ensured that every automated decision could be analysed, defended to regulators, or rolled back instantly if needed.',
     ],
     results: [
-      'Reduced average credit decision time from two days to under 30 minutes.',
-      'Improved consistency of decisions across teams, with clear audit trails for internal and external review.',
-      'Created a reusable pattern for future AI-assisted workflows that security and risk were comfortable approving.',
+      'Efficiency: Reduced credit decisioning turnaround from 7 days to under 2 hours.',
+      'Scalability: Established a modular, reusable framework for automated financial workflows that set the gold standard for security and risk approvals within the bank.',
     ],
   },
   {
@@ -49,7 +48,7 @@ export const CASE_STUDIES = [
     ],
     results: [
       'Unlocked new subscription offerings without destabilising the core application.',
-      'Improved security posture through centralised auth and simpler permission management.',
+      'Modernized security infrastructure by centralizing authentication and optimizing permission management for improved auditability.',
       'Set the foundation for future services to be added independently and safely.',
     ],
   },
