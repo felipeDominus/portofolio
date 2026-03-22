@@ -8,8 +8,10 @@ This document describes the end-to-end CI/CD setup: workflows, jobs, Docker, and
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, Docker image push, GitHub Pages deploy |
+| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, Docker image push to GHCR, **Firebase Hosting** (preview on PRs, **live** on main/master) |
 | **CodeQL** | `.github/workflows/codeql.yml` | `push` / `pull_request` to `main` or `master` | Security and code quality analysis |
+
+Static hosting is **Firebase Hosting** (see [`firebase.json`](../firebase.json) and [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)). There is **no** GitHub Pages deploy job in this repo.
 
 ### Architecture diagram (Mermaid)
 
@@ -38,10 +40,11 @@ flowchart TB
     CI --> A1 --> A2 --> A3 --> A4 --> A5
   end
 
-  A5 --> gate{push to main/master?}
-  gate -->|yes| cd_job
-  gate -->|yes| pages_job
-  gate -->|no| done1[PR: only CI runs]
+  A5 --> branch{event?}
+
+  branch -->|pull_request| firebase_preview
+  branch -->|push to main/master| cd_job
+  branch -->|push to main/master| firebase_hosting
 
   subgraph cd_job["CD job: Docker Build & Push"]
     B1[Checkout]
@@ -53,16 +56,24 @@ flowchart TB
     B5 --> GHCR[ghcr.io/owner/repo]
   end
 
-  subgraph pages_job["Pages job: Deploy to GitHub Pages"]
-    C1[Checkout]
-    C2[Setup Node]
-    C3[npm ci]
-    C4[Build]
-    C5[Setup Pages]
-    C6[Upload dist]
-    C7[Deploy]
-    C1 --> C2 --> C3 --> C4 --> C5 --> C6 --> C7
-    C7 --> Pages[GitHub Pages site]
+  subgraph firebase_preview["Firebase Hosting — Preview"]
+    F1[Checkout]
+    F2[Setup Node]
+    F3[npm ci]
+    F4[Build with VITE_BASE=/]
+    F5[Deploy preview channel]
+    F1 --> F2 --> F3 --> F4 --> F5
+    F5 --> PreviewURL[PR preview URL]
+  end
+
+  subgraph firebase_hosting["Firebase Hosting — Production"]
+    H1[Checkout]
+    H2[Setup Node]
+    H3[npm ci]
+    H4[Build with VITE_BASE=/]
+    H5[Deploy live channel]
+    H1 --> H2 --> H3 --> H4 --> H5
+    H5 --> Live[Firebase live site]
   end
 
   subgraph codeql_job["CodeQL workflow: Analyze"]
@@ -108,25 +119,19 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────────────────┐
 │  CI job (Lint & Build)                                                   │
 │  1. Checkout repo                                                        │
-│  2. Setup Node.js                                                        │
+│  2. Setup Node.js 22                                                     │
 │  3. Install dependencies (npm ci)                                        │
 │  4. Lint (npm run lint)                                                  │
 │  5. Build (npm run build)                                                │
 └─────────────────────────────────────────────────────────────────────────┘
                               │
-              ┌───────────────┴───────────────┐
-              │ only on push to main/master   │
-              ▼                               ▼
-┌──────────────────────────────┐  ┌──────────────────────────────────────────┐
-│  CD job (Docker Build & Push) │  │  Pages job (Deploy to GitHub Pages)     │
-│  1. Checkout                  │  │  1. Checkout                            │
-│  2. Set up Docker Buildx      │  │  2. Setup Node.js                       │
-│  3. Log in to GHCR            │  │  3. Install dependencies                 │
-│  4. Extract metadata (tags)   │  │  4. Build (with base path for Pages)     │
-│  5. Build and push image      │  │  5. Setup Pages                          │
-│     → ghcr.io/owner/repo       │  │  6. Upload artifact (dist)               │
-└──────────────────────────────┘  │  7. Deploy to GitHub Pages               │
-                                  └──────────────────────────────────────────┘
+         ┌────────────────────┼────────────────────┐
+         │ pull_request       │ push main/master   │
+         ▼                    ▼                    ▼
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────────┐
+│ Firebase Preview │  │ Docker push GHCR │  │ Firebase Hosting (live)      │
+│ PR channel       │  │ multi-stage img  │  │ live channel                 │
+└──────────────────┘  └──────────────────┘  └──────────────────────────────┘
 ```
 
 **CodeQL workflow** runs in parallel with CI (separate workflow):
@@ -155,15 +160,15 @@ push or pull_request
 
 ### Job 1: `ci` — Lint & Build
 
-Runs on every push and every PR. Must pass before CD or Pages run.
+Runs on every push and every PR. Must pass before CD or Firebase deploy jobs run.
 
 | Step | Action | Purpose |
 |------|--------|---------|
 | **Checkout** | `actions/checkout@v5` | Clone the repository into the runner. |
-| **Setup Node.js** | `actions/setup-node@v5` | Install Node.js 22 and enable `npm` cache. |
+| **Setup Node.js** | `actions/setup-node@v5` | Install Node.js **22** and enable `npm` cache. |
 | **Install dependencies** | `npm ci` | Install exact versions from `package-lock.json` (reproducible). |
 | **Lint** | `npm run lint` | Run ESLint; fails the job on errors. |
-| **Build** | `npm run build` | Run Vite build; produces `dist/`. |
+| **Build** | `npm run build` | Run Vite build with default `base` (typically `/` in CI unless env overrides). |
 
 ### Job 2: `cd` — Docker Build & Push
 
@@ -174,26 +179,38 @@ Runs only on **push** to `main` or `master` (not on PRs). Depends on `ci` passin
 | **Checkout** | `actions/checkout@v5` | Fresh clone for the Docker build context. |
 | **Set up Docker Buildx** | `docker/setup-buildx-action@v3` | Enable Buildx for multi-stage and caching. |
 | **Log in to Container Registry** | `docker/login-action@v3` | Authenticate to GitHub Container Registry (`ghcr.io`) with `GITHUB_TOKEN`. |
-| **Extract metadata for Docker** | `docker/metadata-action@v5` | Generate image tags and labels (branch, SHA, `latest` on main). |
+| **Extract metadata for Docker** | `docker/metadata-action@v5` | Generate image tags and labels (branch, SHA, `latest` on main/master). |
 | **Build and push Docker image** | `docker/build-push-action@v6` | Build the Dockerfile and push to `ghcr.io/<owner>/<repo>`. Uses GHA cache. |
 
-**Output:** Image available as e.g. `ghcr.io/<owner>/<repo>:latest`, `:main`, `:<sha>`.
+**Output:** Image available as e.g. `ghcr.io/<owner>/<repo>:latest`, branch tag, SHA tag.
 
-### Job 3: `pages` — Deploy to GitHub Pages
+### Job 3: `firebase_preview` — Firebase Hosting (preview)
 
-Runs only on **push** to `main` or `master`. Depends on `ci` passing. Uses the `github-pages` environment.
+Runs only on **pull requests**. Depends on `ci` passing. Uses `FirebaseExtended/action-hosting-deploy@v0`.
 
 | Step | Action | Purpose |
 |------|--------|---------|
 | **Checkout** | `actions/checkout@v5` | Clone the repo. |
 | **Setup Node.js** | `actions/setup-node@v5` | Node 22 + npm cache. |
 | **Install dependencies** | `npm ci` | Same as CI. |
-| **Build** | `npm run build` | Build with `GITHUB_REPOSITORY_NAME` set so Vite `base` matches the repo (e.g. `/portofolio/`). |
-| **Setup Pages** | `actions/configure-pages@v4` | Prepare the runner for Pages deployment. |
-| **Upload artifact** | `actions/upload-pages-artifact@v3` | Upload the `dist/` folder as the Pages artifact. |
-| **Deploy to GitHub Pages** | `actions/deploy-pages@v4` | Deploy the artifact to GitHub Pages (site URL from the environment). |
+| **Build** | `npm run build` with `NODE_ENV=production` and **`VITE_BASE=/`** | Root base path for Firebase preview URLs. |
+| **Deploy** | Firebase Hosting deploy action | Deploy to channel `pr-<number>`, expires in 7 days; comments preview URL on the PR (`pull-requests: write`). |
 
-**Output:** The static site is served at e.g. `https://<owner>.github.io/<repo>/`.
+**Secrets:** `FIREBASE_SERVICE_ACCOUNT`, `FIREBASE_PROJECT_ID` (see [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)).
+
+### Job 4: `firebase_hosting` — Firebase Hosting (production)
+
+Runs only on **push** to `main` or `master`. Depends on `ci` passing.
+
+| Step | Action | Purpose |
+|------|--------|---------|
+| **Checkout** | `actions/checkout@v5` | Clone the repo. |
+| **Setup Node.js** | `actions/setup-node@v5` | Node 22 + npm cache. |
+| **Install dependencies** | `npm ci` | Same as CI. |
+| **Build** | `npm run build` with `NODE_ENV=production` and **`VITE_BASE=/`** | Production bundle for Firebase. |
+| **Deploy** | Firebase Hosting deploy action | Deploy to **`live`** channel. |
+
+**Output:** Site served on your Firebase Hosting domain (e.g. `*.web.app` or custom domain).
 
 ---
 
@@ -259,14 +276,15 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 
 1. **Developer pushes or opens a PR** to `main`/`master`.
 2. **Local pre-commit hook (Husky)** runs on every `git commit`: `npm run lint`. This prevents committing code that fails ESLint before it even reaches CI.  
-3. **CI job** runs: checkout → setup Node → `npm ci` → lint → build.  
+3. **CI job** runs: checkout → setup Node 22 → `npm ci` → lint → build.  
    **CodeQL** runs in parallel: checkout → init CodeQL → analyze.
-4. On **push to main/master** only:
-   - **CD job** builds the Docker image from the Dockerfile (builder → runner with Nginx) and pushes it to `ghcr.io/<owner>/<repo>`.
-   - **Pages job** builds the app with the correct `base`, uploads `dist/` as the Pages artifact, and deploys to GitHub Pages.
-5. **Results:**
-   - **GitHub Pages:** Static site at `https://<owner>.github.io/<repo>/`.
-   - **Container:** Image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags) for use in Cloud Run, Kubernetes, or `docker run`.
+4. On **pull request:** **Firebase preview** job runs after CI: build with `VITE_BASE=/` → deploy to a **preview channel** and post the URL on the PR.
+5. On **push to main/master:**  
+   - **CD job** builds the Docker image and pushes to `ghcr.io/<owner>/<repo>`.  
+   - **Firebase production** job deploys the **live** channel.
+6. **Results:**  
+   - **Firebase Hosting:** Preview URLs on PRs; production site on push.  
+   - **Container:** Image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags) for `docker pull` / Kubernetes / Cloud Run.
 
 ---
 
@@ -280,7 +298,7 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 | **Docker Buildx** | Builds the multi-stage image with caching. |
 | **GHCR login + metadata** | Authenticates and defines image tags/labels. |
 | **Build and push** | Produces and publishes the container image. |
-| **Configure Pages + upload artifact + deploy** | Publishes the static build to GitHub Pages. |
+| **Firebase Hosting deploy** | Publishes `dist/` to preview (PR) or **live** (main/master) channels. |
 | **Initialize CodeQL** | Prepares the CodeQL database for the chosen language. |
 | **Perform CodeQL Analysis** | Runs security/quality queries and reports results. |
-| **Nginx** | Serves the static `dist/` and handles SPA routing and caching. |
+| **Nginx** | Serves the static `dist/` in the Docker image and handles SPA routing and caching. |

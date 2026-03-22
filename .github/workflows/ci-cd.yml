@@ -6,9 +6,9 @@ on:
   pull_request:
     branches: [main, master]
 
-# Only one Pages deployment per branch at a time; avoids "Multiple artifacts named github-pages"
+# Only one run per ref at a time (avoid overlapping deploys)
 concurrency:
-  group: pages-${{ github.ref }}
+  group: ci-cd-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -81,20 +81,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  pages:
-    name: Deploy to GitHub Pages
+  firebase_preview:
+    name: Firebase Hosting (Preview)
     runs-on: ubuntu-latest
     needs: ci
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'pull_request'
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
-    # If this job fails with "Get Pages site failed", enable Pages manually:
-    # Settings → Pages → Build and deployment: Source = "GitHub Actions"
+      pull-requests: write
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -108,22 +102,50 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build
+      - name: Build (root base path)
         env:
           NODE_ENV: production
-          GITHUB_REPOSITORY_NAME: ${{ github.event.repository.name }}
+          VITE_BASE: /
         run: npm run build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      # Must upload exactly one artifact named "github-pages" per run (no matrix on this job).
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to Firebase Hosting preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          name: github-pages
-          path: dist
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: pr-${{ github.event.pull_request.number }}
+          expires: 7d
 
-      - name: Deploy to GitHub Pages
-        id: deploy
-        uses: actions/deploy-pages@v4
+  firebase_hosting:
+    name: Firebase Hosting (Production)
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build (root base path)
+        env:
+          NODE_ENV: production
+          VITE_BASE: /
+        run: npm run build
+
+      - name: Deploy to Firebase Hosting (live)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          channelId: live
