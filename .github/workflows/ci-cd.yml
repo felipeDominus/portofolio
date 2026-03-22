@@ -81,6 +81,66 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # --- GitHub Pages (static site from dist/) ---
+  # Repo Settings → Pages → Build and deployment → Source: GitHub Actions (required once).
+  pages_build:
+    name: Build GitHub Pages
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Set Vite base for GitHub Pages
+        id: vite_base
+        run: |
+          REPO="${{ github.event.repository.name }}"
+          if [[ "$REPO" == *.github.io ]]; then
+            echo "Vite base: / (user or org site repo)"
+            echo "path=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "Vite base: /${REPO}/ (project site)"
+            echo "path=/${REPO}/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        env:
+          NODE_ENV: production
+          VITE_BASE: ${{ steps.vite_base.outputs.path }}
+        run: npm run build
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  pages_deploy:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    needs: pages_build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
   # --- Firebase Hosting (implemented, not active yet) ---
   # Jobs stay in-repo so you can turn them on when ready. Add secrets (see docs/FIREBASE-HOSTING.md),
   # then change each job's `if:` from `false && …` to just the `…` part (drop `false &&`).

@@ -1,6 +1,6 @@
 # Portfolio
 
-A React portfolio application built with **Vite**. Includes CI/CD via GitHub Actions (lint/build, Docker image to GHCR), and optional local Docker runs. **Firebase Hosting** deploy jobs are already defined in the workflow but **disabled** (`if: false && …`) until you add secrets and flip the condition—see [docs/FIREBASE-HOSTING.md](docs/FIREBASE-HOSTING.md).
+A React portfolio application built with **Vite**. Includes CI/CD via GitHub Actions (lint/build, **GitHub Pages** deploy on `main`/`master`, Docker image to GHCR), and optional local Docker runs. **Firebase Hosting** deploy jobs are already defined in the workflow but **disabled** (`if: false && …`) until you add secrets and flip the condition—see [docs/FIREBASE-HOSTING.md](docs/FIREBASE-HOSTING.md).
 
 ## Tech Stack
 
@@ -8,7 +8,7 @@ A React portfolio application built with **Vite**. Includes CI/CD via GitHub Act
 - **Node.js 22** (local dev and CI — see `.github/workflows/ci-cd.yml`)
 - **npm** for package management
 - **Docker** (multi-stage: Node build → Nginx serve) for containerized deployment
-- **GitHub Actions** — CI/CD, CodeQL, and (when enabled) Firebase Hosting deploys
+- **GitHub Actions** — CI/CD, GitHub Pages deploy, CodeQL, and (when enabled) Firebase Hosting deploys
 
 ## Quick Start
 
@@ -71,12 +71,14 @@ Two workflows:
 
 | Workflow | Purpose |
 | -------- | ------- |
-| **CI/CD** ([`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)) | **Lint & build** on every push/PR. On **push** to `main`/`master`: push Docker image to **GHCR**. **Firebase** preview/prod jobs are in the file but **disabled** until you enable them. |
+| **CI/CD** ([`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)) | **Lint & build** on every push/PR. On **push** to `main`/`master`: deploy static site to **GitHub Pages**, push Docker image to **GHCR**. **Firebase** preview/prod jobs are in the file but **disabled** until you enable them. |
 | **CodeQL** ([`.github/workflows/codeql.yml`](.github/workflows/codeql.yml)) | Security / code quality (JavaScript/TypeScript) on push/PR. |
 
 **CI job:** Checkout → Setup Node.js 22 → `npm ci` → Lint → Build.
 
 **CD job** (push to `main`/`master` only): Checkout → Docker Buildx → GHCR login → metadata tags → build and push `ghcr.io/<owner>/<repo>`.
+
+**GitHub Pages** (push to `main`/`master` only): After CI passes, a dedicated build sets `VITE_BASE` for project sites (`/<repo>/`) or `/` for `*.github.io` repos, uploads `dist/` with `upload-pages-artifact`, then `deploy-pages` publishes the site.
 
 **CodeQL:** Checkout → Initialize CodeQL → Analyze (results in **Security** tab and PR checks).
 
@@ -86,7 +88,8 @@ Two workflows:
 
 1. Create a repository and push this project.
 2. Default branch: `main` or `master`.
-3. On push to `main`/`master`, the workflow publishes a **container image** — `ghcr.io/<owner>/<repo>:latest` and other tags from metadata (no Firebase secrets required until you enable Firebase jobs).
+3. **Enable GitHub Pages from Actions:** Repository **Settings** → **Pages** → **Build and deployment** → **Source:** **GitHub Actions** (not “Deploy from a branch”). Without this, the `pages_deploy` job cannot publish.
+4. On push to `main`/`master`, the workflow publishes the **static site** to Pages and a **container image** — `ghcr.io/<owner>/<repo>:latest` and other tags (no Firebase secrets required until you enable Firebase jobs).
 
 When you are ready for **Firebase Hosting** from Actions, add secrets per [docs/FIREBASE-HOSTING.md](docs/FIREBASE-HOSTING.md) and change each Firebase job’s `if:` in `ci-cd.yml` from `false && …` to the condition shown in the comment (drop `false &&`).
 

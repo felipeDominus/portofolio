@@ -8,10 +8,10 @@ This document describes the end-to-end CI/CD setup: workflows, jobs, Docker, and
 
 | Workflow | File | Triggers | Purpose |
 |----------|------|----------|---------|
-| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, Docker image push to GHCR on push to `main`/`master`; **Firebase Hosting** jobs are defined but **disabled** (`if: false && …`) until you enable them |
+| **CI/CD** | `.github/workflows/ci-cd.yml` | `push` / `pull_request` to `main` or `master` | Lint, build, **GitHub Pages** (`pages_build` → `pages_deploy`) on push to `main`/`master`, Docker image push to GHCR; **Firebase Hosting** jobs are defined but **disabled** (`if: false && …`) until you enable them |
 | **CodeQL** | `.github/workflows/codeql.yml` | `push` / `pull_request` to `main` or `master` | Security and code quality analysis |
 
-**Static hosting:** Firebase deploy steps exist in the workflow file but are **off** until you flip the `if:` conditions and add secrets (see [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)). [`firebase.json`](../firebase.json) matches that setup. There is **no** GitHub Pages deploy job unless you add one.
+**Static hosting:** **GitHub Pages** is deployed by Actions (`upload-pages-artifact` + `deploy-pages`). Set **Settings → Pages → Source: GitHub Actions** on the repo. **Firebase** deploy steps are **off** until you flip the `if:` conditions and add secrets (see [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md)); [`firebase.json`](../firebase.json) matches that optional path.
 
 ### Architecture diagram (Mermaid)
 
@@ -279,8 +279,8 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 3. **CI job** runs: checkout → setup Node 22 → `npm ci` → lint → build.  
    **CodeQL** runs in parallel: checkout → init CodeQL → analyze.
 4. On **pull request:** **CI** (and CodeQL) run. **Firebase preview** is defined but skipped while `if: false && …` is in place.
-5. On **push to main/master:** the **CD job** builds the Docker image and pushes to `ghcr.io/<owner>/<repo>`. **Firebase production** is defined but skipped until you enable its `if:`.
-6. **Results:** Container image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags). After you enable Firebase jobs and secrets, preview URLs on PRs and the live Firebase site behave as in [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md).
+5. On **push to main/master:** **`pages_build`** builds with the correct `VITE_BASE` for GitHub Pages, uploads `dist/`; **`pages_deploy`** publishes to GitHub Pages (requires **Settings → Pages → Source: GitHub Actions**). The **CD job** builds the Docker image and pushes to `ghcr.io/<owner>/<repo>`. **Firebase production** is defined but skipped until you enable its `if:`.
+6. **Results:** Public site on `https://<user>.github.io/<repo>/` (project repo) or your org/user Pages URL; container image `ghcr.io/<owner>/<repo>:latest` (and branch/SHA tags). After you enable Firebase jobs and secrets, preview URLs on PRs and the live Firebase site behave as in [FIREBASE-HOSTING.md](./FIREBASE-HOSTING.md).
 
 ---
 
@@ -294,6 +294,7 @@ Excluded from the Docker build context to keep the image small and avoid invalid
 | **Docker Buildx** | Builds the multi-stage image with caching. |
 | **GHCR login + metadata** | Authenticates and defines image tags/labels. |
 | **Build and push** | Produces and publishes the container image. |
+| **upload-pages-artifact + deploy-pages** | Publishes `dist/` to **GitHub Pages** after `pages_build` (push to `main`/`master`). |
 | **Firebase Hosting deploy** | Publishes `dist/` to preview (PR) or **live** (main/master) when those jobs are enabled. |
 | **Initialize CodeQL** | Prepares the CodeQL database for the chosen language. |
 | **Perform CodeQL Analysis** | Runs security/quality queries and reports results. |
